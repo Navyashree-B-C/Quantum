@@ -3,110 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Tracker</title>
+    <title>6-Month Quantum Arc</title>
     <style>
-        :root { --primary: #6200ea; --bg: #121212; --surface: #1e1e1e; --text: #e0e0e0; --success: #00e676; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        h1 { font-size: 1.5rem; margin-bottom: 10px; color: var(--primary); }
-        .progress-container { background: var(--surface); height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--success); width: 0%; transition: width 0.3s ease; }
-        .phase { margin-bottom: 20px; }
-        .phase-title { font-weight: bold; margin-bottom: 10px; color: #bb86fc; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .task { display: flex; align-items: center; background: var(--surface); padding: 12px; margin-bottom: 8px; border-radius: 8px; }
-        .task input { margin-right: 15px; transform: scale(1.3); accent-color: var(--success); }
+        :root { --primary: #bb86fc; --bg: #0f0f13; --surface: #1e1e24; --text: #e0e0e0; --success: #00e676; --secondary: #3700b3; --accent: #03dac6; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
+        
+        /* Sticky Header */
+        header { position: sticky; top: 0; background: var(--bg); z-index: 100; padding: 20px 20px 10px 20px; border-bottom: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        h1 { font-size: 1.5rem; margin: 0 0 15px 0; color: var(--primary); text-align: center; letter-spacing: 1px; font-weight: 800;}
+        
+        /* Nav */
+        .nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        .nav-btn { padding: 8px; background: var(--surface); border: 1px solid #333; color: #888; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
+        .nav-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .nav-btn:hover:not(.active) { background: #2c2c2c; }
+
+        /* Progress */
+        .progress-wrapper { display: flex; align-items: center; margin-bottom: 5px; }
+        .progress-container { flex-grow: 1; background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-right: 10px; }
+        .progress-bar { height: 100%; background: var(--success); width: 0%; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+        .stats { font-size: 0.8rem; color: var(--accent); font-weight: bold; white-space: nowrap; }
+
+        /* Content */
+        .view-container { padding: 20px; display: none; animation: slideUp 0.3s ease-out; }
+        .view-container.active-view { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards */
+        .month-block { margin-bottom: 30px; border-left: 2px solid #333; padding-left: 15px; }
+        .month-title { color: var(--accent); font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; }
+        .month-number { background: #333; color: #fff; padding: 2px 6px; border-radius: 4px; margin-right: 10px; font-size: 0.8rem; }
+        
+        .card { background: var(--surface); padding: 15px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #2a2a2a; }
+        .week-label { font-size: 0.75rem; color: #666; font-weight: bold; margin: 10px 0 5px 0; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 2px; }
+
+        .task { display: flex; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #252525; }
+        .task:last-child { border: none; }
+        .task input { margin-top: 5px; margin-right: 12px; transform: scale(1.2); accent-color: var(--success); cursor: pointer; opacity: 0.8; }
+        .task input:checked { opacity: 1; }
         .task-content { flex-grow: 1; }
-        .task-name { font-size: 1rem; display: block; }
-        .resources { font-size: 0.8rem; color: #999; margin-top: 4px; display: block; }
-        a { color: #03dac6; text-decoration: none; }
+        .task-name { font-size: 0.95rem; display: block; line-height: 1.4; color: #ddd; }
+        .task-meta { font-size: 0.75rem; color: #888; display: block; margin-top: 3px; }
+        .task-meta a { color: var(--primary); text-decoration: none; }
+        .done-text { text-decoration: line-through; color: #555; transition: color 0.3s; }
+
     </style>
 </head>
 <body>
 
-    <h1>⚛️ Quantum Progress</h1>
-    
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div id="stats" style="margin-bottom: 20px; font-size: 0.9rem; color: #aaa;">0% Complete</div>
+    <header>
+        <h1>⚛️ QUANTUM ARC</h1>
+        <div class="nav">
+            <button class="nav-btn active" onclick="switchTab('learn')">🧠 LEARN</button>
+            <button class="nav-btn" onclick="switchTab('practice')">⚡ DRILLS</button>
+            <button class="nav-btn" onclick="switchTab('projects')">🛠️ BUILD</button>
+            <button class="nav-btn" onclick="switchTab('papers')">📄 PAPER</button>
+        </div>
+        <div class="progress-wrapper">
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="stats" id="stats">0%</div>
+        </div>
+    </header>
 
-    <div id="app"></div>
+    <div id="view-learn" class="view-container active-view"></div>
+    <div id="view-practice" class="view-container"></div>
+    <div id="view-projects" class="view-container"></div>
+    <div id="view-papers" class="view-container"></div>
 
     <script>
-        // 1. The Data Structure (Your Roadmap)
-        const roadmap = [
+        /* =========================================
+           DATA: THE 6-MONTH CURRICULUM
+           ========================================= */
+
+        const learnData = [
             {
-                title: "Phase 1: The Kernel (Math)",
-                tasks: [
-                    { id: "p1w1d1", name: "Day 1: Complex Plane", resource: "Khan Academy: Complex Plane", link: "https://www.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:complex/x2ec2f6f830c9fb89:complex-plane/v/complex-plane" },
-                    { id: "p1w1d2", name: "Day 2: Python Complex Type", resource: "Python Docs: complex()", link: "https://docs.python.org/3/library/functions.html#complex" },
-                    { id: "p1w1d3", name: "Day 3: Magnitude & Phase", resource: "Visualizing Math", link: "#" },
-                    { id: "p1w1d4", name: "Day 4: Conjugates", resource: "Math is Fun", link: "#" },
-                    { id: "p1w1d5", name: "Day 5: Coding State Class", resource: "Repo Implementation", link: "#" },
+                month: "Month 1: The Kernel",
+                title: "Linear Algebra & Single Qubits",
+                weeks: [
+                    { label: "Week 1: Complex Numbers", tasks: [{ id: "l_m1w1_1", name: "Coordinate Systems (Polar/Rect)", meta: "Khan Academy" }, { id: "l_m1w1_2", name: "Python Complex Type", meta: "RealPython" }] },
+                    { label: "Week 2: Vectors & Matrices", tasks: [{ id: "l_m1w2_1", name: "Bra-Ket Notation", meta: "Wikipedia" }, { id: "l_m1w2_2", name: "Unitary Matrices", meta: "Numpy Docs" }] },
+                    { label: "Week 3: Qubit States", tasks: [{ id: "l_m1w3_1", name: "Superposition", meta: "Qiskit Ch.1" }, { id: "l_m1w3_2", name: "Bloch Sphere", meta: "Visualizer" }] },
+                    { label: "Week 4: Basic Gates", tasks: [{ id: "l_m1w4_1", name: "X, Y, Z, H Gates", meta: "Qiskit Ch.2" }] }
                 ]
             },
             {
-                title: "Phase 2: The Hardware",
-                tasks: [
-                    { id: "p2w3d1", name: "Superposition", resource: "Qiskit Textbook Ch 1", link: "https://qiskit.org/textbook" },
-                    { id: "p2w3d2", name: "The Bloch Sphere", resource: "Bloch Sphere Visualizer", link: "https://javafxpert.github.io/grok-bloch/" }
+                month: "Month 2: Hardware",
+                title: "Entanglement & Multi-Qubit",
+                weeks: [
+                    { label: "Week 5: Tensor Products", tasks: [{ id: "l_m2w1_1", name: "Calculating Kronecker Product", meta: "Math is Fun" }] },
+                    { label: "Week 6: CNOT & Entanglement", tasks: [{ id: "l_m2w2_1", name: "The CNOT Gate", meta: "Qiskit" }, { id: "l_m2w2_2", name: "Bell States", meta: "Concept" }] },
+                    { label: "Week 7: Measurement", tasks: [{ id: "l_m2w3_1", name: "Born Rule", meta: "Theory" }, { id: "l_m2w3_2", name: "Collapse", meta: "Theory" }] },
+                    { label: "Week 8: Hardware Constraints", tasks: [{ id: "l_m2w4_1", name: "Decoherence & T1/T2 Times", meta: "IBM Quantum" }] }
+                ]
+            },
+            {
+                month: "Month 3: Protocols",
+                title: "Communication Algorithms",
+                weeks: [
+                    { label: "Week 9: Teleportation", tasks: [{ id: "l_m3w1_1", name: "The Protocol Step-by-Step", meta: "Qiskit Textbook" }] },
+                    { label: "Week 10: Superdense Coding", tasks: [{ id: "l_m3w2_1", name: "Transmitting 2 bits with 1 Qubit", meta: "Wikipedia" }] },
+                    { label: "Week 11: Deutsch Algorithm", tasks: [{ id: "l_m3w3_1", name: "Constant vs Balanced Functions", meta: "Qiskit" }] },
+                    { label: "Week 12: Deutsch-Jozsa", tasks: [{ id: "l_m3w4_1", name: "N-Bit Generalization", meta: "Qiskit" }] }
+                ]
+            },
+            {
+                month: "Month 4: Search",
+                title: "Grover's Algorithm",
+                weeks: [
+                    { label: "Week 13: Oracles", tasks: [{ id: "l_m4w1_1", name: "Phase Oracles", meta: "Concept" }] },
+                    { label: "Week 14: Amplitude Amplification", tasks: [{ id: "l_m4w2_1", name: "Geometric Interpretation", meta: "3Blue1Brown" }] },
+                    { label: "Week 15: Qiskit Implementation", tasks: [{ id: "l_m4w3_1", name: "Building Grover in Qiskit", meta: "IBM Tutorials" }] },
+                    { label: "Week 16: SAT Problems", tasks: [{ id: "l_m4w4_1", name: "Mapping Logic to Quantum", meta: "Paper" }] }
+                ]
+            },
+            {
+                month: "Month 5: Frequency",
+                title: "QFT & Phase Estimation",
+                weeks: [
+                    { label: "Week 17: Fourier Transform", tasks: [{ id: "l_m5w1_1", name: "Classical DFT recap", meta: "Youtube" }] },
+                    { label: "Week 18: QFT Circuit", tasks: [{ id: "l_m5w2_1", name: "The QFT Implementation", meta: "Qiskit Textbook" }] },
+                    { label: "Week 19: Phase Estimation", tasks: [{ id: "l_m5w3_1", name: "QPE Algorithm", meta: "Crucial for Shor's" }] },
+                    { label: "Week 20: Shor's (Theory)", tasks: [{ id: "l_m5w4_1", name: "Period Finding", meta: "Concept Only" }] }
+                ]
+            },
+            {
+                month: "Month 6: The Frontier",
+                title: "Quantum ML (VQE)",
+                weeks: [
+                    { label: "Week 21: Variational Circuits", tasks: [{ id: "l_m6w1_1", name: "Parameterized Circuits", meta: "PennyLane" }] },
+                    { label: "Week 22: Optimizers", tasks: [{ id: "l_m6w2_1", name: "Classical Optimization Loop", meta: "Gradient Descent" }] },
+                    { label: "Week 23: VQE", tasks: [{ id: "l_m6w3_1", name: "Ground State Energy", meta: "Physics" }] },
+                    { label: "Week 24: Final Review", tasks: [{ id: "l_m6w4_1", name: "The Full Stack", meta: "Review" }] }
                 ]
             }
         ];
 
-        // 2. Load State
-        const savedState = JSON.parse(localStorage.getItem('quantumProgress')) || {};
+        const practiceData = [
+            {
+                month: "Drills: Continuous Integration",
+                title: "Weekly Code Katas",
+                weeks: [
+                    { label: "Math Drills", tasks: [
+                        { id: "p_d1", name: "Hand-calculate dot products", meta: "Pen & Paper" },
+                        { id: "p_d2", name: "Normalize complex vectors", meta: "Python Script" },
+                        { id: "p_d3", name: "Calculate Tensor Products (2x2)", meta: "Numpy" }
+                    ]},
+                    { label: "Qiskit Drills", tasks: [
+                        { id: "p_d4", name: "Create Bell State", meta: "Qiskit" },
+                        { id: "p_d5", name: "Plot Histogram Results", meta: "Matplotlib" },
+                        { id: "p_d6", name: "Visualize Bloch Sphere", meta: "Qiskit Viz" }
+                    ]}
+                ]
+            }
+        ];
 
-        // 3. Render Function
+        const projectData = [
+            {
+                month: "Month 1 Project",
+                title: "PyQubit Simulator",
+                weeks: [
+                    { label: "Deliverables", tasks: [
+                        { id: "pj_m1_1", name: "Build 'State' Class", meta: "Handle complex amplitudes" },
+                        { id: "pj_m1_2", name: "Implement Gates (X, H, Z)", meta: "Matrix Multiplication" },
+                        { id: "pj_m1_3", name: "CLI Vizualizer", meta: "Print probabilities to console" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 2 Project",
+                title: "Entanglement Visualizer",
+                weeks: [
+                    { label: "Deliverables", tasks: [
+                        { id: "pj_m2_1", name: "Upgrade to 2 Qubits", meta: "Tensor Product Logic" },
+                        { id: "pj_m2_2", name: "Implement CNOT", meta: "Control/Target Logic" },
+                        { id: "pj_m2_3", name: "Verify Bell Inequalities", meta: "Script to prove correlation" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 3 Project",
+                title: "Teleportation Protocol GUI",
+                weeks: [
+                    { label: "Deliverables", tasks: [
+                        { id: "pj_m3_1", name: "Build Circuit in Qiskit", meta: "Using IBM libraries" },
+                        { id: "pj_m3_2", name: "Create Simple Web UI (Streamlit)", meta: "Input state -> Teleport -> Output" },
+                        { id: "pj_m3_3", name: "Run on Simulator", meta: "Verify state fidelity" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 4 Project",
+                title: "Sudoku Solver (Grover)",
+                weeks: [
+                    { label: "Deliverables", tasks: [
+                        { id: "pj_m4_1", name: "Define 2x2 Sudoku Oracle", meta: "Logical constraints" },
+                        { id: "pj_m4_2", name: "Implement Diffuser", meta: "Amplitude Amplification" },
+                        { id: "pj_m4_3", name: "Solve and Display", meta: "Output correct grid" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 5 Project",
+                title: "Audio Signal Analyzer (QFT)",
+                weeks: [
+                    { label: "Deliverables", tasks: [
+                        { id: "pj_m5_1", name: "Input Audio Wave", meta: "Convert .wav to amplitude list" },
+                        { id: "pj_m5_2", name: "Run QFT", meta: "Transform to frequency domain" },
+                        { id: "pj_m5_3", name: "Compare with FFT", meta: "Benchmark speed/accuracy" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 6 Project",
+                title: "Molecule Solver (VQE)",
+                weeks: [
+                    { label: "Deliverables", tasks: [
+                        { id: "pj_m6_1", name: "Setup PennyLane/Qiskit Nature", meta: "Install ML libs" },
+                        { id: "pj_m6_2", name: "Define H2 Molecule", meta: "Hamiltonian Setup" },
+                        { id: "pj_m6_3", name: "Find Ground State", meta: "Run Optimization Loop" }
+                    ]}
+                ]
+            }
+        ];
+
+        const paperData = [
+            {
+                month: "Month 1 Paper",
+                title: "Foundations of Qubit Linear Algebra",
+                weeks: [
+                    { label: "Goal: Explain the Math", tasks: [
+                        { id: "pp_m1_1", name: "Draft Methodology", meta: "How matrices rotate vectors" },
+                        { id: "pp_m1_2", name: "Generate Plots", meta: "Visualizing a Hadamard transformation" },
+                        { id: "pp_m1_3", name: "Publish PDF", meta: "GitHub/LinkedIn" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 2 Paper",
+                title: "Analysis of Non-Local Correlations",
+                weeks: [
+                    { label: "Goal: Explain Entanglement", tasks: [
+                        { id: "pp_m2_1", name: "Simulate Bell Test", meta: "Generate data points" },
+                        { id: "pp_m2_2", name: "Compare Classical vs Quantum", meta: "Show probability gaps" },
+                        { id: "pp_m2_3", name: "Publish PDF", meta: "Focus on 'Spooky Action'" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 3 Paper",
+                title: "Resource Costs of Teleportation",
+                weeks: [
+                    { label: "Goal: Explain Protocols", tasks: [
+                        { id: "pp_m3_1", name: "Analyze Qubit Cost", meta: "How many classical bits needed?" },
+                        { id: "pp_m3_2", name: "Fidelity Graph", meta: "Noise vs Success Rate" },
+                        { id: "pp_m3_3", name: "Publish PDF", meta: "Communication theory focus" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 4 Paper",
+                title: "Benchmarking Grover vs Classical Search",
+                weeks: [
+                    { label: "Goal: Explain Speedup", tasks: [
+                        { id: "pp_m4_1", name: "Run Search (N=10 to N=1000)", meta: "Measure iteration count" },
+                        { id: "pp_m4_2", name: "Plot O(N) vs O(sqrt(N))", meta: "The curve is the result" },
+                        { id: "pp_m4_3", name: "Publish PDF", meta: "Algorithmic complexity focus" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 5 Paper",
+                title: "The Quantum Fourier Transform",
+                weeks: [
+                    { label: "Goal: Explain Frequency", tasks: [
+                        { id: "pp_m5_1", name: "Visualize Phase Shift", meta: "Circle plots" },
+                        { id: "pp_m5_2", name: "Circuit Depth Analysis", meta: "How many gates used?" },
+                        { id: "pp_m5_3", name: "Publish PDF", meta: "Signal processing focus" }
+                    ]}
+                ]
+            },
+            {
+                month: "Month 6 Paper",
+                title: "Variational Quantum Algorithms",
+                weeks: [
+                    { label: "Goal: Explain Hybrid Quantum-Classical", tasks: [
+                        { id: "pp_m6_1", name: "Convergence Plot", meta: "Error rate over iterations" },
+                        { id: "pp_m6_2", name: "Explain Gradient Descent", meta: "How the optimizer tunes parameters" },
+                        { id: "pp_m6_3", name: "Publish PDF", meta: "Machine Learning focus" }
+                    ]}
+                ]
+            }
+        ];
+
+        /* =========================================
+           APP LOGIC
+           ========================================= */
+        const savedState = JSON.parse(localStorage.getItem('quantum6MonthArc')) || {};
+
         function render() {
-            const app = document.getElementById('app');
-            app.innerHTML = '';
-            let totalTasks = 0;
-            let completedTasks = 0;
-
-            roadmap.forEach(phase => {
-                const phaseDiv = document.createElement('div');
-                phaseDiv.className = 'phase';
-                
-                const title = document.createElement('div');
-                title.className = 'phase-title';
-                title.textContent = phase.title;
-                phaseDiv.appendChild(title);
-
-                phase.tasks.forEach(task => {
-                    totalTasks++;
-                    const isChecked = savedState[task.id] || false;
-                    if (isChecked) completedTasks++;
-
-                    const taskDiv = document.createElement('div');
-                    taskDiv.className = 'task';
-                    
-                    taskDiv.innerHTML = `
-                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTask('${task.id}')">
-                        <div class="task-content">
-                            <span class="task-name" style="${isChecked ? 'text-decoration: line-through; color: #666;' : ''}">${task.name}</span>
-                            ${task.resource ? `<span class="resources"><a href="${task.link}" target="_blank">🔗 ${task.resource}</a></span>` : ''}
-                        </div>
-                    `;
-                    phaseDiv.appendChild(taskDiv);
-                });
-
-                app.appendChild(phaseDiv);
-            });
-
-            // Update Progress Bar
-            const percent = Math.round((completedTasks / totalTasks) * 100);
-            document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('stats').innerText = `${percent}% Complete (${completedTasks}/${totalTasks})`;
+            renderSection('view-learn', learnData);
+            renderSection('view-practice', practiceData);
+            renderSection('view-projects', projectData);
+            renderSection('view-papers', paperData);
+            updateStats();
         }
 
-        // 4. Toggle Function
+        function renderSection(elmId, data) {
+            const container = document.getElementById(elmId);
+            container.innerHTML = '';
+            
+            data.forEach(block => {
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'month-block';
+                
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'month-title';
+                titleDiv.innerHTML = `<span class="month-number">${block.month}</span> ${block.title}`;
+                blockDiv.appendChild(titleDiv);
+
+                block.weeks.forEach(week => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'week-label';
+                    label.innerText = week.label;
+                    card.appendChild(label);
+
+                    week.tasks.forEach(task => {
+                        const isChecked = savedState[task.id] || false;
+                        const taskHtml = `
+                            <div class="task">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+                                <div class="task-content">
+                                    <span class="task-name ${isChecked ? 'done-text' : ''}">${task.name}</span>
+                                    <span class="task-meta">${task.meta}</span>
+                                </div>
+                            </div>
+                        `;
+                        card.innerHTML += taskHtml;
+                    });
+                    blockDiv.appendChild(card);
+                });
+                container.appendChild(blockDiv);
+            });
+        }
+
+        function updateStats() {
+            let total = 0, completed = 0;
+            const count = (d) => d.forEach(m => m.weeks.forEach(w => w.tasks.forEach(t => { total++; if(savedState[t.id]) completed++; })));
+            
+            count(learnData); count(practiceData); count(projectData); count(paperData);
+            
+            const percent = total > 0 ? Math.round((completed/total)*100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('stats').innerText = percent + '% COMPLETED';
+        }
+
         window.toggleTask = (id) => {
             savedState[id] = !savedState[id];
-            localStorage.setItem('quantumProgress', JSON.stringify(savedState));
+            localStorage.setItem('quantum6MonthArc', JSON.stringify(savedState));
             render();
         };
 
-        // Initial Render
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            // Simple index matching for buttons
+            const idx = ['learn','practice','projects','papers'].indexOf(tab);
+            if(idx > -1) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+            
+            document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active-view'));
+            document.getElementById(`view-${tab}`).classList.add('active-view');
+        };
+
         render();
     </script>
 </body>
